@@ -5,11 +5,11 @@ from langgraph.graph import StateGraph, END
 from langchain_core.tools import tool
 from langchain_core.messages import SystemMessage, ToolMessage
 # Project Imports
-from ..states.state import MessageState
+from states.state import MessageState
 
 
 
-# Tool Calling Agent Definition
+# Tool Calling Agent Definition - Could be enhanced to utilize graph.state
 class ToolCallingAgent:
 
     def __init__(self, llm, tools, prompt="", state=None):
@@ -17,15 +17,15 @@ class ToolCallingAgent:
         self.prompt = prompt
         self.state = state or {"messages": []}
         # graph init
-        graph = StateGraph(state)
+        graph = StateGraph(MessageState)
         graph.add_node("llm", self.call_llm)
-        graph.add_node("action", self.take_action)
+        graph.add_node("tool", self.call_tool)
         graph.add_conditional_edges(
             "llm",
-            self.exists_action,
-            {True: "action", False: END}
+            self.exists_tool,
+            {True: "tool", False: END}
         )
-        graph.add_edge("action", "llm")
+        graph.add_edge("tool", "llm")
         graph.set_entry_point("llm")
         self.graph = graph.compile()
         # llm & tools init
@@ -33,21 +33,21 @@ class ToolCallingAgent:
         self.llm = llm.bind_tools(tools)
 
     # Check if requested tool call exists
-    def exists_action(self):
-        result = self.state['messages'][-1]
+    def exists_tool(self, state):
+        result = state['messages'][-1]
         return len(result.tool_calls) > 0
 
     # Go to llm
-    def call_llm(self):
-        messages = self.state['messages']
+    def call_llm(self, state):
+        messages = state['messages']
         if self.prompt:
             messages = [SystemMessage(content=self.prompt)] + messages
         message = self.llm.invoke(messages)
         return {'messages': [message]}
 
     # Use requested tool
-    def take_action(self):
-        tool_calls = self.state['messages'][-1].tool_calls
+    def call_tool(self, state):
+        tool_calls = state['messages'][-1].tool_calls
         results = []
         for t in tool_calls:
             print(f"Calling: {t}")
