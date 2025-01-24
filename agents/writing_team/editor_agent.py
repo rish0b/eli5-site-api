@@ -32,7 +32,6 @@ class EditorAgent:
         ]
         
         response = self.llm.invoke(messages).content
-        print(response)
 
         state['editor_feedback'] = response
         state["revision_number"] = state["revision_number"] + 1

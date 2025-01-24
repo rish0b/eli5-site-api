@@ -21,7 +21,9 @@ llm = ChatOpenAI(api_key=OPENAI_API_KEY, model="gpt-4o")
 
 
 ##### INITIAL STATE #####
-initial_state = initialize_article_state()
+initial_state = initialize_article_state() 
+# can introduce a custom state values here if necessary
+
 
 ##### EXECUTION #####
 
@@ -29,9 +31,8 @@ def main():
     logger.log(level=20, msg="Running Article Production...")
 
     create_article = article_production(llm).compile()
-    initial_state["max_revisions"] = 1
-    # initial_state["reddit_question"] = "ELI5: when they ban a fan from a stadium how would they stop the person from coming to a game the next season?"
-    print(create_article.invoke(initial_state))  # pass in ArticleState with vals
+    
+    create_article.invoke(initial_state)
 
 if __name__ == "__main__":
     main()

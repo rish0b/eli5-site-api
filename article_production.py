@@ -78,10 +78,9 @@ def article_production(llm):
     # Writing
     workflow.add_conditional_edges("writing", keep_revising, { "capture_writer_final" : "capture_writer_final", "editor" : "editor" })
     workflow.add_edge("editor", "writing")
+    workflow.add_edge("capture_writer_final", "editor_in_chief")
 
-    workflow.set_finish_point("capture_writer_final")   # temporary
-
-    # workflow.add_edge("capture_writer_final", "editor_in_chief")
+    workflow.set_finish_point("editor_in_chief")   # temporary
 
     # Publishing
 

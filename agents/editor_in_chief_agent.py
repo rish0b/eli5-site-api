@@ -1,3 +1,4 @@
+import requests
 # LangChain / LangGraph Imports
 from langgraph.graph.message import add_messages
 from langchain_core.messages import HumanMessage
@@ -31,9 +32,31 @@ class EditorInChiefAgent():
         llm.bind_tools(tools)    
 
     def next_team(self, state):
-        if state.get("research_notes") and state["research_notes"].strip():
-            return {"next_node": "writing"}
-        else:
+        if state.get("reddit_question", "") == "":
+            return {"next_node": "reddit"}
+        elif state.get("research_notes", "") == "":
             return {"next_node": "research"}
+        elif state.get("article_content", "") == "":
+            return {"next_node": "writing"}
+        return {"next_node": "END"}
+
+    def get_rising_posts(subreddit_name='explainlikeimfive', filter='rising', limit=5):
+        # URL to fetch rising posts with the limit
+        url = f"https://www.reddit.com/r/{subreddit_name}/{filter}.json?limit={limit}"
         
-        # add logic to route to reddit tool, publisher, etc.
+        # Send a GET request to the Reddit API
+        data = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'}).json()
+        
+        # Parse the JSON response
+        posts = []
+        
+        for post in data['data']['children']:
+            post_info = {
+                'reddit_post_id': post['data']['id'],
+                'reddit_question': post['data']['title'],
+                'reddit_user': post['data']['author'],
+                'reddit_tag': post['data']['link_flair_text']
+            }
+            posts.append(post_info)
+        
+        return posts    
