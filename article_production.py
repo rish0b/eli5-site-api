@@ -9,6 +9,9 @@ from agents.research_team.research_agent import ResearchAgent
 from agents.writing_team.writer_agent import WriterAgent
 from agents.editor_in_chief_agent import EditorInChiefAgent
 from agents.writing_team.editor_agent import EditorAgent
+from agents.media_team.media_agent import MediaAgent
+from agents.media_team.publish_agent import PublishAgent
+from agents.writing_team.seo_agent import SEOAgent
 from states.state import ArticleState
 
 
@@ -17,10 +20,13 @@ def article_production(llm):
 
     def initialize_agents():
         return {
-            "editor_in_chief_agent" : EditorInChiefAgent(llm),
+            "editor_in_chief_agent" : EditorInChiefAgent(),
             "research_agent"        : ResearchAgent(llm),
             "writer_agent"          : WriterAgent(llm),
-            "editor_agent"          : EditorAgent(llm)
+            "editor_agent"          : EditorAgent(llm),
+            "media_agent"           : MediaAgent(llm),
+            "publish_agent"         : PublishAgent(),
+            "seo_agent"             : SEOAgent(llm)
         }
 
     # A S S E M B L E   T E A M
@@ -32,6 +38,9 @@ def article_production(llm):
 
     # Editor-In-Chief Agent
     workflow.add_node("editor_in_chief", team["editor_in_chief_agent"].next_team)
+
+    # Media Agent (who in turn has a workflow with the github and reddit agents/tools)
+    workflow.add_node("media", team['media_agent'].fetch_from_reddit)
 
     # Research Agent
     workflow.add_node("research", team["research_agent"].do_research)
@@ -52,7 +61,6 @@ def article_production(llm):
     
     def capture_writer_final(state):
         state['article_content'] = state['article_draft']
-        print(state['article_content'])
         return state 
     workflow.add_node("capture_writer_final", capture_writer_final)
 
@@ -61,8 +69,14 @@ def article_production(llm):
         state=              state
     ))
 
-    # Publisher Agent (who in turn has a workflow with the github and reddit agents/tools)
+    # SEO Agent
+    workflow.add_node("seo", team['seo_agent'].generate_seo)
 
+    # Publisher Agent
+    workflow.add_node("publish", team["publish_agent"].publish_article)
+
+    # END
+    workflow.add_node("END", lambda state: state)
 
     # E D G E S
 
@@ -72,6 +86,9 @@ def article_production(llm):
     # Editor in Chief
     workflow.add_conditional_edges("editor_in_chief", lambda state: state["next_node"])
 
+    # Media
+    workflow.add_edge("media", "editor_in_chief") # route back to editor in chief
+
     # Research
     workflow.add_edge("research", "editor_in_chief")
 
@@ -80,10 +97,13 @@ def article_production(llm):
     workflow.add_edge("editor", "writing")
     workflow.add_edge("capture_writer_final", "editor_in_chief")
 
-    workflow.set_finish_point("editor_in_chief")   # temporary
+    # SEO
+    workflow.add_edge("seo", "editor_in_chief")
 
-    # Publishing
+    # Publish
+    workflow.add_edge("publish", "editor_in_chief")
 
+    # Finish
 
     # G R A P H
     return workflow

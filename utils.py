@@ -1,12 +1,51 @@
 import os
+import base64
 import requests
+from dotenv import load_dotenv
+# langchain import
+from langchain.tools import tool
 
-# Function to get all filenames from a GitHub directory
-def get_existing_ids_from_github(repo_owner, repo_name, access_token, directory=''):
+load_dotenv()
+
+GITHUB_ACCESS_TOKEN = os.getenv('GITHUB_ACCESS_TOKEN')
+REPO_OWNER = os.getenv('GITHUB_REPO_OWNER')
+REPO_NAME = os.getenv('GITHUB_REPO_NAME')
+FOLDER_PATH = 'content/posts'
+
+def get_posts_from_eli5_reddit():
+    """
+    Retrieves the top 5 hottest posts from the r/explainlikeimfive subreddit.
+    """
+
+    subreddit_name='explainlikeimfive'
+    filter='rising'
+    limit=5
+
+    # URL to fetch hot posts with the limit
+    url = f"https://www.reddit.com/r/{subreddit_name}/{filter}.json?limit={limit}"
+    
+    # Send a GET request to the Reddit API
+    data = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'}).json()
+    
+    # Parse the JSON response
+    posts = []
+    
+    for post in data['data']['children']:
+        post_info = {
+            'reddit_post_id': post['data']['id'],
+            'reddit_question': post['data']['title'],
+            'reddit_user': post['data']['author'],
+            'reddit_tag': post['data']['link_flair_text']
+        }
+        posts.append(post_info)
+    
+    return posts
+
+def get_existing_ids_from_github():
     headers = {
-        'Authorization': f'token {access_token}'
+        'Authorization': f'token {GITHUB_ACCESS_TOKEN}'
     }
-    url = f'https://api.github.com/repos/{repo_owner}/{repo_name}/contents/{directory}'
+    url = f'https://api.github.com/repos/{REPO_OWNER}/{REPO_NAME}/contents/{FOLDER_PATH}'
 
     response = requests.get(url, headers=headers)
     if response.status_code == 200:
@@ -15,66 +54,47 @@ def get_existing_ids_from_github(repo_owner, repo_name, access_token, directory=
         return [os.path.splitext(file['name'])[0] for file in files if file['name'].endswith('.md')]
     else:
         return []
-
-# Function to check if a Reddit post has already been written to GitHub
-def is_post_already_written(post_id, existing_ids):
-    return post_id in existing_ids
-
-# Function to post a Markdown article to GitHub
-def post_article_to_github(repo_owner, repo_name, access_token, post_id, content, message=''):
-    headers = {
-        'Authorization': f'token {access_token}',
-        'Content-Type': 'application/json'
-    }
     
-    # Prepare the commit data
-    commit_data = {
-        "message": message or f"Adding article for Reddit post {post_id}",
-        "content": content,
-        "branch": "main",  # Specify the branch where you want to add the new file
-        "path": f"{post_id}.md"  # File name is the Reddit post ID
-    }
-    
-    # URL to create or update a file in GitHub
-    url = f'https://api.github.com/repos/{repo_owner}/{repo_name}/contents/{post_id}.md'
-    
-    # First, check if the file already exists
-    existing_files = requests.get(f'https://api.github.com/repos/{repo_owner}/{repo_name}/contents/{post_id}.md', headers=headers)
-    
-    if existing_files.status_code == 404:  # File does not exist
-        # Create the new file
-        response = requests.put(url, json=commit_data, headers=headers)
-    else:
-        # Update the existing file
-        response = requests.put(url, json=commit_data, headers=headers)
-    
-    if response.status_code in [201, 200]:  # Successfully created or updated
-        print(f"Article {post_id}.md successfully posted!")
-        return True
-    else:
-        print(f"Failed to post article {post_id}.md")
-        return False
+def push_markdown_to_github(title, markdown_content):
+    """
+    Pushes a markdown file to a specific folder in a GitHub repository.
 
-# Example usage:
-# Replace these with your actual GitHub repo details
-GITHUB_REPO_OWNER = 'your-github-username'
-GITHUB_REPO_NAME = 'your-github-repo-name'
-ACCESS_TOKEN = 'your-personal-access-token'
-
-# Step 1: Get the list of existing IDs
-existing_post_ids = get_existing_ids_from_github(GITHUB_REPO_OWNER, GITHUB_REPO_NAME, ACCESS_TOKEN)
-
-# Step 2: Reddit Post ID (replace this with the actual Reddit post ID you want to process)
-reddit_post_id = '1i7s9gf'
-
-# Step 3: Check if the post is already written
-if not is_post_already_written(reddit_post_id, existing_post_ids):
-    # Example Markdown content for the article (you need to generate this dynamically)
-    markdown_content = """
-    # Reddit Post Explanation
-    ## Title: Why do financial institutions say "basis points"?
-    This is a markdown article explaining the concept.
+    Args:
+        title (str): The title of the markdown file (used as filename).
+        markdown_content (str): The content of the markdown file to push.
     """
 
-    # Post the article to GitHub
-    post_article_to_github(GITHUB_REPO_OWNER, GITHUB_REPO_NAME, ACCESS_TOKEN, reddit_post_id, markdown_content)
+    # Prepare the URL and headers for GitHub API request
+    api_url = f'https://api.github.com/repos/{REPO_OWNER}/{REPO_NAME}/contents/{FOLDER_PATH}/{title}.md'
+    headers = {'Authorization': f'Bearer {GITHUB_ACCESS_TOKEN}'}
+
+    # Get the SHA of the current file, if it exists (for updates)
+    response = requests.get(api_url, headers=headers)
+    sha = None
+
+    if response.status_code == 200:
+        # If file exists, get the sha of the current file
+        sha = response.json().get('sha')
+
+    # Prepare the payload for the API request
+    data = {
+        'message': f'Add new post: {title}',  # Commit message
+        'content': base64.b64encode(markdown_content.encode('utf-8')).decode('utf-8'),  # Base64-encoded file content
+        'branch' : "main"
+    }
+
+    if sha:
+        # If the file exists, include the SHA for updating it
+        data['sha'] = sha
+
+    # Send the request to push the markdown file
+    response = requests.put(api_url, headers=headers, json=data)
+
+    # Check if the push was successful
+    if response.status_code == 201:
+        print(f"Successfully pushed {title}.md to {FOLDER_PATH}")
+    elif response.status_code == 200:
+        print(f"Successfully updated {title}.md in {FOLDER_PATH}")
+    else:
+        print(f"Failed to push file. Status code: {response.status_code}")
+        print(response.json())

@@ -1,18 +1,16 @@
 # Basic Imports
-from typing import TypedDict, Annotated, Optional
 # LangChain / LangGraph Imports
-from langgraph.graph import StateGraph, END
-from langchain_core.tools import tool
-from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage
-from langgraph.prebuilt import create_react_agent
+from langchain_core.messages import HumanMessage, SystemMessage
 # Project Imports
 
 # Prompt
 DEFAULT_PROMPT = """
     Given the following Markdown article draft, please provide concise feedback to improve clarity, coherence, grammar, and overall readability. \
-    Focus on ensuring that the Markdown syntax is used correctly, such as headers, bullet points, lists, and code blocks. \
+    Focus on ensuring that the Markdown syntax is used correctly, such as headers, bullet points, lists, and blocks. \
     Address any ambiguities, improve transitions between sections, and suggest ways to enhance the structure and formatting. \
-    If there are areas where more details could be added, suggest specific improvements. \
+    Do not worry about the article title, that will be handled separately. \
+    The draft you are provided is intended to get right into it, with a strong hook. \
+    If there are areas which are boring / don't retain the readers attention, suggest specific improvements. \
     Provide actionable feedback and highlight potential strengths in both content and Markdown style. \n
     You will also be given the initial question that the article is aiming to address.
 """

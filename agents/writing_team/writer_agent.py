@@ -1,10 +1,7 @@
 # Basic Imports
-from typing import TypedDict, Annotated, Optional
+from typing import Optional
 # LangChain / LangGraph Imports
-from langgraph.graph import StateGraph, END
-from langchain_core.tools import tool
-from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage
-from langgraph.prebuilt import create_react_agent
+from langchain_core.messages import HumanMessage, SystemMessage
 # Project Imports
 
 # Prompt
@@ -14,7 +11,7 @@ You specialize in writing viral, simple to understand, informative articles that
 Your task is to write a complete article based on the provided inputs.  
 You may also receive a previous draft of the article and editor feedback to guide your improvements.  
 
-The article title will be provided separately, you will not include it.
+The article title will be provided separately, you will not include it. Just get right into the article, with a strong hook.
 
 Use Markdown syntax for the article. Ensure the article is well-structured and uses proper headings, bullet points, and formatting where appropriate.  
 
