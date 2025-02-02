@@ -22,7 +22,6 @@ llm = ChatOpenAI(api_key=OPENAI_API_KEY, model="gpt-4o")
 
 ##### INITIAL STATE #####
 initial_state = initialize_article_state() 
-# can introduce a custom state values here if necessary
 
 
 ##### EXECUTION #####
