@@ -18,7 +18,7 @@ def get_posts_from_eli5_reddit():
     """
 
     subreddit_name='explainlikeimfive'
-    filter='rising'
+    filter='new'
     limit=5
 
     # URL to fetch hot posts with the limit

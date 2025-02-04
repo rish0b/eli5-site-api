@@ -27,7 +27,12 @@ category: "{state['reddit_tag']}"
 tags:
 - "{state['reddit_tag']}"
 description: "{state['article_subtitle']}"
----"""
+---
+>👉 [Read the discussion on Reddit](https://www.reddit.com/r/explainlikeimfive/comments/{state['reddit_post_id']})  
+>**Title:** {state['reddit_question']}  
+>**Author:** u/{state['reddit_user']}  
+---
+"""
         
         full_markdown = f"{markdown_header}\n{article_content}"
 
@@ -35,6 +40,6 @@ description: "{state['article_subtitle']}"
 
         push_markdown_to_github(state['reddit_post_id'], full_markdown)
 
-        state['article_url'] = "Suspend Execution"
+        state['article_url'] = "https://rish0b.github.io/eli5-site-ui/posts/" + state['reddit_post_id']
 
         return state
