@@ -1,6 +1,7 @@
 import os
 import base64
 import requests
+import random
 from dotenv import load_dotenv
 # langchain import
 from langchain.tools import tool
@@ -12,13 +13,17 @@ REPO_OWNER = os.getenv('GITHUB_REPO_OWNER')
 REPO_NAME = os.getenv('GITHUB_REPO_NAME')
 FOLDER_PATH = 'content/posts'
 
+
+def choose_filter():
+    return random.choice(["new", "rising", "hot"])
+
 def get_posts_from_eli5_reddit():
     """
     Retrieves the top 5 hottest posts from the r/explainlikeimfive subreddit.
     """
 
     subreddit_name='explainlikeimfive'
-    filter='rising'
+    filter=choose_filter()
     limit=5
 
     # URL to fetch hot posts with the limit
