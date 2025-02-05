@@ -8,7 +8,8 @@ class MessageState(TypedDict):
 class ArticleState(TypedDict):
     # reddit tool call (inputs to the whole system)
     reddit_post_id: str         # ID of Reddit Post
-    reddit_question: str           # eli5 question
+    reddit_question: str        # eli5 question
+    reddit_selftext: str        # Additional context on the question
     reddit_user: str            # Reddit user who posted the query
     reddit_tag: str             # Category of the eli5 post
 
@@ -37,6 +38,7 @@ def initialize_article_state() -> ArticleState:
     return ArticleState(
         reddit_post_id="",
         reddit_question="",
+        reddit_selftext="",
         reddit_user="",
         reddit_tag="",
 

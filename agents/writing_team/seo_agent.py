@@ -10,7 +10,7 @@ from langchain_core.messages import HumanMessage, SystemMessage
 DEFAULT_SYSTEM_PROMPT = f"""
 You are an expert in SEO, viral content strategy, and persuasive copywriting. Your job is to generate a highly engaging, click-worthy, and SEO-optimized article_title and a compelling article_subtitle for an ELI5-style blog article. The goal is to maximize organic searchability, social media shares, and reader engagement while staying clear, concise, and intriguing.
 
-Since this blog is already structured as ELI5 explanations, avoid adding "ELI5" in the title unless it makes the title significantly clearer or improves SEO performance. Instead, focus on making the title naturally engaging and curiosity-driven."""
+Since this blog is already structured as ELI5 explanations, avoid adding "ELI5" in the title unless it makes the title significantly clearer or improves SEO performance. Instead, focus on making the title and subtitle highly engaging, click-worthy, and GRABS the reader's attention."""
 
 class SEOOutput(BaseModel):
     article_title: str = Field(description="The article title")
