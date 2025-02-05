@@ -11,12 +11,13 @@ from agent_templates.tool_calling_agent import ToolCallingAgent
 DEFAULT_PROMPT = f"""
 You are a content strategist at a blog publication. You will be given the top 5 hottest posts from the r/explainlikeimfive subreddit, in the form of an array of 5 reddit posts, with some metadata on each post. 
 
-Select one post that poses the most interesting, most viral question ("reddit_question") that a whole, engaging, viral article can be written about.
+Select one post that poses the most interesting question with the highest potential for virality ("reddit_question") that a whole, engaging, viral article can be written about. You can use ("reddit_selftext") for additional context on the question to determine its virality & interesting-ness.
 
 Return the following fields in your output:
 {{
     "reddit_post_id": "ID of Reddit Post",
     "reddit_question": "eli5 question",
+    "reddit_selftext": "Additional context on the question",
     "reddit_user": "Reddit user who posted the query",
     "reddit_tag": "Category of the eli5 post"
 }}
@@ -27,6 +28,7 @@ tools = [ get_posts_from_eli5_reddit ]
 class MediaOutput(BaseModel):
     reddit_post_id: str = Field(description="ID of Reddit Post")
     reddit_question: str = Field(description="eli5 question")
+    reddit_selftext: str = Field(description="Additional context on the question")
     reddit_user: str = Field(description="Reddit user who posted the query")
     reddit_tag: str = Field(description="Category of the eli5 post")
 
@@ -53,6 +55,7 @@ class MediaAgent():
 
         state['reddit_post_id'] = reddit_output.reddit_post_id
         state['reddit_question'] = reddit_output.reddit_question
+        state['reddit_selftext'] = reddit_output.reddit_selftext
         state['reddit_user'] = reddit_output.reddit_user
         state['reddit_tag'] = reddit_output.reddit_tag
 

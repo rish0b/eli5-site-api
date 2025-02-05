@@ -29,7 +29,7 @@ tags:
 description: "{state['article_subtitle']}"
 ---
 >👉 [Read the discussion on Reddit](https://www.reddit.com/r/explainlikeimfive/comments/{state['reddit_post_id']})  
->**Title:** {state['reddit_question']}  
+>**Post:** {state['reddit_question']}  
 >**Author:** u/{state['reddit_user']}  
 ---
 """
