@@ -49,7 +49,7 @@ def initialize_article_state() -> ArticleState:
         editor_feedback="",
 
         revision_number=0,
-        max_revisions=1,
+        max_revisions=0,
 
         article_content="",
 
